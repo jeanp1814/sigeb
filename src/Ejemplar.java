@@ -18,12 +18,4 @@ public class Ejemplar {
     public void cambiarEstado(String estado) {
         this.estado = estado;
     }
-
-    public String getCodigoInventario() {
-        return codigoInventario;
-    }
-
-    public String getEstado() {
-        return estado;
-    }
 }

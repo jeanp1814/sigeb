@@ -1,13 +1,14 @@
 import java.math.BigDecimal;
 import java.time.LocalDate;
-public class politicaPrestamo {
+
+public class PoliticaPrestamo {
 
     private int diasPrestamo;
     private int maximoEjemplaresActivos;
     private BigDecimal penalizacionPorDia;
     private boolean bloquearPorPenalizacion;
 
-    public politicaPrestamo(int diasPrestamo, int maximoEjemplaresActivos, BigDecimal penalizacionPorDia, boolean bloquearPorPenalizacion) {
+    public PoliticaPrestamo(int diasPrestamo, int maximoEjemplaresActivos, BigDecimal penalizacionPorDia, boolean bloquearPorPenalizacion) {
         this.diasPrestamo = diasPrestamo;
         this.maximoEjemplaresActivos = maximoEjemplaresActivos;
         this.penalizacionPorDia = penalizacionPorDia;

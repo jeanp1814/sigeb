@@ -1,4 +1,3 @@
-
 import java.util.ArrayList;
 
 public class Libro {
@@ -47,26 +46,5 @@ public class Libro {
         }
 
         return cantidad;
-    }
-
-    // Métodos de consulta para mostrar los datos
-    public String getTitulo() {
-        return titulo;
-    }
-
-    public String getIsbn() {
-        return isbn;
-    }
-
-    public Categoria getCategoria() {
-        return categoria;
-    }
-
-    public ArrayList<Autor> getAutores() {
-        return autores;
-    }
-
-    public ArrayList<Ejemplar> getEjemplares() {
-        return ejemplares;
     }
 }
