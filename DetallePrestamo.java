@@ -38,32 +38,3 @@ public class DetallePrestamo {
     public boolean estaVencido(LocalDate fecha) {
         return fechaDevolucion == null && fecha.isAfter(fechaLimite);
     }
-
-    public int getIdDetalle() {
-        return idDetalle;
-    }
-
-    public Ejemplar getEjemplar() {
-        return ejemplar;
-    }
-
-    public LocalDate getFechaLimite() {
-        return fechaLimite;
-    }
-
-    public LocalDate getFechaDevolucion() {
-        return fechaDevolucion;
-    }
-
-    public Administrador getDevueltoPor() {
-        return devueltoPor;
-    }
-
-    public String getObservacion() {
-        return observacion;
-    }
-
-    public Penalizacion getPenalizacion() {
-        return penalizacion;
-    }
-}
