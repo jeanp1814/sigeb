@@ -21,3 +21,49 @@ public class DetallePrestamo {
         this.penalizacion = null;
     }
 
+    public void registrarDevolucion(LocalDate fecha, Administrador admin, String observacion) {
+        this.fechaDevolucion = fecha;
+        this.devueltoPor = admin;
+        this.observacion = observacion;
+    }
+
+    public int calcularDiasRetraso(LocalDate fecha) {
+        if (fecha.isAfter(fechaLimite)) {
+            return (int) ChronoUnit.DAYS.between(fechaLimite, fecha);
+        }
+
+        return 0;
+    }
+
+    public boolean estaVencido(LocalDate fecha) {
+        return fechaDevolucion == null && fecha.isAfter(fechaLimite);
+    }
+
+    public int getIdDetalle() {
+        return idDetalle;
+    }
+
+    public Ejemplar getEjemplar() {
+        return ejemplar;
+    }
+
+    public LocalDate getFechaLimite() {
+        return fechaLimite;
+    }
+
+    public LocalDate getFechaDevolucion() {
+        return fechaDevolucion;
+    }
+
+    public Administrador getDevueltoPor() {
+        return devueltoPor;
+    }
+
+    public String getObservacion() {
+        return observacion;
+    }
+
+    public Penalizacion getPenalizacion() {
+        return penalizacion;
+    }
+}
