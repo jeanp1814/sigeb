@@ -1,4 +1,4 @@
-public abstract class usuario{
+public abstract class Usuario{
     private int idUsuario;
     private String documento;
     private String nombres;
@@ -6,7 +6,7 @@ public abstract class usuario{
     private String correo;
     private boolean activo;
 
-    public usuario(int idUsuario, String documento, String nombres, String apellidos, String correo) {
+    public Usuario(int idUsuario, String documento, String nombres, String apellidos, String correo) {
         this.idUsuario = idUsuario;
         this.documento = documento;
         this.nombres = nombres;

@@ -10,8 +10,4 @@ public class Autor {
     public void actualizarDatos(String nombre) {
         nombreCompleto = nombre;
     }
-
-    public String getNombreCompleto() {
-        return nombreCompleto;
-    }
 }
