@@ -54,4 +54,8 @@ public class DetallePrestamo {
     public void asignarPenalizacion(Penalizacion penalizacion) {
         this.penalizacion = penalizacion;
     }
+
+    public void setPenalizacion(Penalizacion penalizacion) {
+        this.penalizacion = penalizacion;
+    }
 }
