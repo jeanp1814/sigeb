@@ -47,4 +47,36 @@ public class Libro {
 
         return cantidad;
     }
+
+    public int getIdLibro() {
+        return idLibro;
+    }
+
+    public String getIsbn() {
+        return isbn;
+    }
+
+    public String getTitulo() {
+        return titulo;
+    }
+
+    public String getEditorial() {
+        return editorial;
+    }
+
+    public int getAnioPublicacion() {
+        return añoPublicacion;
+    }
+
+    public Categoria getCategoria() {
+        return categoria;
+    }
+
+    public ArrayList<Autor> getAutores() {
+        return new ArrayList<>(autores);
+    }
+
+    public ArrayList<Ejemplar> getEjemplares() {
+        return new ArrayList<>(ejemplares);
+    }
 }

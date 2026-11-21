@@ -18,4 +18,16 @@ public class Ejemplar {
     public void cambiarEstado(String estado) {
         this.estado = estado;
     }
+
+    public int getIdEjemplar() {
+        return idEjemplar;
+    }
+
+    public String getCodigoInventario() {
+        return codigoInventario;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
 }

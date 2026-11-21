@@ -23,4 +23,12 @@ public class Penalizacion {
     public void resolver() {
         resuelta = true;
     }
+    
+    public boolean getResuelta() {
+        return resuelta;
+    }
+
+    public BigDecimal getMonto() {
+        return monto;
+    }
 }

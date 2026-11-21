@@ -26,4 +26,15 @@ public class PoliticaPrestamo {
         this.bloquearPorPenalizacion = bloquear;
     }
     
+    public int getMaximoEjemplaresActivos() {
+        return maximoEjemplaresActivos;
+    }
+
+    public BigDecimal getPenalizacionPorDia() {
+        return penalizacionPorDia;
+    }
+
+    public boolean getBloquearPorPenalizacion() {
+        return bloquearPorPenalizacion;
+    }
 }
