@@ -123,3 +123,80 @@ public class PanelPoliticaPrestamos extends JPanel {
 
         spDiasRenovacion.setEnabled(false);
     }
+
+    private void agregarCampo(
+        JPanel panel, String texto, JComponent componente
+    ) {
+
+        JLabel etiqueta = new JLabel(texto);
+        etiqueta.setFont(new Font("Arial", Font.PLAIN, 14));
+
+        panel.add(etiqueta);
+        panel.add(componente);
+    }
+
+    private void guardarConfiguracion() {
+
+        int diasPrestamo = (Integer) spDiasPrestamo.getValue();
+        int maxEjemplares = (Integer) spMaxEjemplares.getValue();
+
+        double penalizacion = (Double) spPenalizacion.getValue();
+
+        boolean renovaciones = chkRenovaciones.isSelected();
+
+        int diasRenovacion = (Integer) spDiasRenovacion.getValue();
+
+        String mensaje =
+            "Configuración guardada correctamente.\n\n"
+            + "Días de préstamo: " + diasPrestamo + "\n"
+            + "Máximo de ejemplares: " + maxEjemplares + "\n"
+            + "Penalización diaria: S/ " + penalizacion + "\n"
+            + "Renovaciones: " + (renovaciones ? "Sí" : "No");
+
+        if (renovaciones) {
+            mensaje += "\nDías adicionales: " + diasRenovacion;
+        }
+
+        JOptionPane.showMessageDialog(
+            this,
+            mensaje,
+            "Política de préstamos",
+            JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+
+    private void restablecerConfiguracion() {
+
+        spDiasPrestamo.setValue(7);
+        spMaxEjemplares.setValue(3);
+        spPenalizacion.setValue(2.0);
+        chkRenovaciones.setSelected(false);
+        spDiasRenovacion.setValue(7);
+
+        spDiasRenovacion.setEnabled(false);
+    }
+
+    // Métodos para consultar la configuración
+
+    public int getDiasPrestamo() {
+        return (Integer) spDiasPrestamo.getValue();
+    }
+
+    public int getMaxEjemplares() {
+        return (Integer) spMaxEjemplares.getValue();
+    }
+
+    public BigDecimal getPenalizacionDiaria() {
+        return BigDecimal.valueOf(
+            (Double) spPenalizacion.getValue()
+        );
+    }
+
+    public boolean isRenovacionesPermitidas() {
+        return chkRenovaciones.isSelected();
+    }
+
+    public int getDiasRenovacion() {
+        return (Integer) spDiasRenovacion.getValue();
+    }
+}
