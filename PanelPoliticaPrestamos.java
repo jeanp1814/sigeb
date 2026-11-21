@@ -93,3 +93,33 @@ public class PanelPoliticaPrestamos extends JPanel {
         principal.add(panelDatos);
         principal.add(Box.createVerticalStrut(30));
 
+        // Botones
+        JPanel panelBotones = new JPanel(
+            new FlowLayout(FlowLayout.RIGHT)
+        );
+
+        panelBotones.setBackground(Color.WHITE);
+
+        JButton btnGuardar = new JButton("Guardar configuración");
+        JButton btnRestablecer = new JButton("Restablecer");
+
+        panelBotones.add(btnRestablecer);
+        panelBotones.add(btnGuardar);
+
+        principal.add(panelBotones);
+
+        add(principal, BorderLayout.CENTER);
+
+        // Eventos
+        chkRenovaciones.addActionListener(e -> {
+            spDiasRenovacion.setEnabled(
+                chkRenovaciones.isSelected()
+            );
+        });
+
+        btnGuardar.addActionListener(e -> guardarConfiguracion());
+
+        btnRestablecer.addActionListener(e -> restablecerConfiguracion());
+
+        spDiasRenovacion.setEnabled(false);
+    }
