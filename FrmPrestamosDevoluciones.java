@@ -62,7 +62,7 @@ public class FrmPrestamosDevoluciones extends JFrame {
         panelContenido.setBackground(COLOR_FONDO);
 
         panelContenido.add(crearPanelInicio(), "inicio");
-        panelContenido.add(crearPanelVacio("Registro de préstamos"), "prestamos");
+        panelContenido.add(new PanelRegistrarPrestamo(), "prestamos");
         panelContenido.add(crearPanelVacio("Registro de devoluciones"), "devoluciones");
         panelContenido.add(crearPanelVacio("Consultas de préstamos"), "consultas");
         panelContenido.add(crearPanelVacio("Gestión de penalizaciones"), "penalizaciones");
