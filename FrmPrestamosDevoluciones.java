@@ -107,3 +107,79 @@ public class FrmPrestamosDevoluciones extends JFrame {
         });
     }
 
+    private JButton crearBoton(String texto) {
+
+        JButton boton = new JButton(texto);
+
+        boton.setFont(new Font("Arial", Font.BOLD, 13));
+        boton.setForeground(Color.WHITE);
+        boton.setBackground(COLOR_BOTON);
+        boton.setFocusPainted(false);
+        boton.setBorderPainted(false);
+        boton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        return boton;
+    }
+
+    private JPanel crearPanelInicio() {
+
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(COLOR_FONDO);
+
+        JPanel contenido = new JPanel();
+        contenido.setLayout(new BoxLayout(contenido, BoxLayout.Y_AXIS));
+        contenido.setOpaque(false);
+
+        JLabel titulo = new JLabel("Bienvenido al módulo");
+        titulo.setFont(new Font("Arial", Font.BOLD, 28));
+        titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel subtitulo = new JLabel("Préstamos y Devoluciones");
+        subtitulo.setFont(new Font("Arial", Font.PLAIN, 20));
+        subtitulo.setForeground(Color.GRAY);
+        subtitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel descripcion = new JLabel(
+            "Seleccione una opción del menú para comenzar."
+        );
+        descripcion.setFont(new Font("Arial", Font.PLAIN, 15));
+        descripcion.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        contenido.add(titulo);
+        contenido.add(Box.createVerticalStrut(15));
+        contenido.add(subtitulo);
+        contenido.add(Box.createVerticalStrut(25));
+        contenido.add(descripcion);
+
+        panel.add(contenido);
+
+        return panel;
+    }
+
+    private JPanel crearPanelVacio(String titulo) {
+
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(COLOR_FONDO);
+
+        JLabel etiqueta = new JLabel(titulo);
+        etiqueta.setFont(new Font("Arial", Font.BOLD, 25));
+
+        panel.add(etiqueta);
+
+        return panel;
+    }
+
+    private void mostrarPanel(String nombre) {
+        cardLayout.show(panelContenido, nombre);
+    }
+
+    public static void main(String[] args) {
+
+        SwingUtilities.invokeLater(() -> {
+            FrmPrestamosDevoluciones ventana =
+                new FrmPrestamosDevoluciones();
+
+            ventana.setVisible(true);
+        });
+    }
+}
