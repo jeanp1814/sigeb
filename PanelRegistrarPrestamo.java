@@ -141,3 +141,111 @@ public class PanelRegistrarPrestamo extends JPanel {
         panel.add(contenedor);
     }
 
+    private void agregarEjemplar() {
+
+        String codigo = txtEjemplar.getText().trim();
+
+        if (codigo.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                this, "Ingrese el código del ejemplar."
+            );
+            return;
+        }
+
+        for (int i = 0; i < modelo.getRowCount(); i++) {
+            if (modelo.getValueAt(i, 1).toString().equals(codigo)) {
+                JOptionPane.showMessageDialog(
+                    this, "El ejemplar ya fue agregado."
+                );
+                return;
+            }
+        }
+
+        modelo.addRow(new Object[]{
+            modelo.getRowCount() + 1,
+            codigo
+        });
+
+        txtEjemplar.setText("");
+    }
+
+    private void eliminarEjemplar() {
+
+        int fila = tabla.getSelectedRow();
+
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(
+                this, "Seleccione un ejemplar."
+            );
+            return;
+        }
+
+        modelo.removeRow(fila);
+
+        for (int i = 0; i < modelo.getRowCount(); i++) {
+            modelo.setValueAt(i + 1, i, 0);
+        }
+    }
+
+    private void registrarPrestamo() {
+
+        if (txtIdPrestamo.getText().trim().isEmpty()
+            || txtLector.getText().trim().isEmpty()
+            || txtAdministrador.getText().trim().isEmpty()
+            || txtFechaLimite.getText().trim().isEmpty()) {
+
+            JOptionPane.showMessageDialog(
+                this, "Complete todos los campos."
+            );
+            return;
+        }
+
+        if (modelo.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(
+                this, "Agregue al menos un ejemplar."
+            );
+            return;
+        }
+
+        try {
+            LocalDate fecha = LocalDate.parse(
+                txtFechaPrestamo.getText().trim()
+            );
+
+            LocalDate limite = LocalDate.parse(
+                txtFechaLimite.getText().trim()
+            );
+
+            if (limite.isBefore(fecha)) {
+                JOptionPane.showMessageDialog(
+                    this, "La fecha límite no puede ser anterior al préstamo."
+                );
+                return;
+            }
+
+            JOptionPane.showMessageDialog(
+                this,
+                "Datos del préstamo validados correctamente.\n"
+                + "Ejemplares: " + modelo.getRowCount()
+            );
+
+        } catch (DateTimeParseException ex) {
+            JOptionPane.showMessageDialog(
+                this,
+                "Ingrese las fechas en formato AAAA-MM-DD."
+            );
+        }
+    }
+
+    private void limpiarFormulario() {
+
+        txtIdPrestamo.setText("");
+        txtLector.setText("");
+        txtAdministrador.setText("");
+        txtFechaPrestamo.setText(LocalDate.now().toString());
+        txtFechaLimite.setText("");
+        txtEjemplar.setText("");
+
+        modelo.setRowCount(0);
+    }
+}
