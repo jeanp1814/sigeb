@@ -68,7 +68,7 @@ public class Biblioteca {
     public void actualizarLibro(Libro libro) {
         for (Libro actual : libros) {
             if (actual.getIdLibro() == libro.getIdLibro()) {
-                actual.actualizarDatos(libro.getTitulo(),libro.getEditorial(),libro.getAnioPublicacion());
+                actual.actualizarDatos(libro.getTitulo(),libro.getEditorial(),libro.getAñoPublicacion());
                 return;
             }
         }

@@ -64,7 +64,7 @@ public class Libro {
         return editorial;
     }
 
-    public int getAnioPublicacion() {
+    public int getAñoPublicacion() {
         return añoPublicacion;
     }
 

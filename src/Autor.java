@@ -11,6 +11,10 @@ public class Autor {
         nombreCompleto = nombre;
     }
 
+    public int getIdAutor() {
+        return idAutor;
+    }
+
     public String getNombreCompleto() {
         return nombreCompleto;
     }

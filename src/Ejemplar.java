@@ -27,6 +27,10 @@ public class Ejemplar {
         return codigoInventario;
     }
 
+    public String getUbicacion() {
+        return ubicacion;
+    }
+
     public String getEstado() {
         return estado;
     }
