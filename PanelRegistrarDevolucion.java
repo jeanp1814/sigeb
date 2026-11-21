@@ -168,3 +168,131 @@ public class PanelRegistrarDevolucion extends JPanel {
         btnLimpiar.addActionListener(e -> limpiarFormulario());
     }
 
+    private void agregarCampo(
+        JPanel panel, String texto, JTextField campo
+    ) {
+
+        JPanel contenedor = new JPanel(new BorderLayout(5, 5));
+        contenedor.setBackground(Color.WHITE);
+
+        JLabel etiqueta = new JLabel(texto);
+
+        contenedor.add(etiqueta, BorderLayout.NORTH);
+        contenedor.add(campo, BorderLayout.CENTER);
+
+        panel.add(contenedor);
+    }
+
+    private void buscarPrestamo() {
+
+        String codigo = txtBuscar.getText().trim();
+
+        if (codigo.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                this, "Ingrese el código del préstamo."
+            );
+            return;
+        }
+
+        JOptionPane.showMessageDialog(
+            this,
+            "La búsqueda se conectará con los préstamos registrados."
+        );
+    }
+
+    private void seleccionarEjemplar() {
+
+        int fila = tabla.getSelectedRow();
+
+        if (fila == -1) {
+            return;
+        }
+
+        txtEjemplar.setText(
+            modelo.getValueAt(fila, 1).toString()
+        );
+
+        txtFechaLimite.setText(
+            modelo.getValueAt(fila, 2).toString()
+        );
+    }
+
+    private void calcularRetraso() {
+
+        if (txtFechaLimite.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(
+                this, "Seleccione un ejemplar."
+            );
+            return;
+        }
+
+        try {
+            LocalDate limite = LocalDate.parse(
+                txtFechaLimite.getText()
+            );
+
+            LocalDate devolucion = LocalDate.parse(
+                txtFechaDevolucion.getText().trim()
+            );
+
+            if (devolucion.isBefore(limite)) {
+                txtDiasRetraso.setText("0");
+            } else {
+                long dias = ChronoUnit.DAYS.between(
+                    limite, devolucion
+                );
+
+                txtDiasRetraso.setText(String.valueOf(dias));
+            }
+
+        } catch (DateTimeParseException ex) {
+            JOptionPane.showMessageDialog(
+                this,
+                "Verifique las fechas. Formato: AAAA-MM-DD."
+            );
+        }
+    }
+
+    private void registrarDevolucion() {
+
+        if (tabla.getSelectedRow() == -1) {
+            JOptionPane.showMessageDialog(
+                this, "Seleccione un ejemplar."
+            );
+            return;
+        }
+
+        try {
+            LocalDate.parse(txtFechaDevolucion.getText().trim());
+
+            calcularRetraso();
+
+            JOptionPane.showMessageDialog(
+                this,
+                "Datos de devolución validados.\n"
+                + "Días de retraso: " + txtDiasRetraso.getText()
+                + "\nLa conexión con el registro de devoluciones "
+                + "se realizará en la etapa de integración."
+            );
+
+        } catch (DateTimeParseException ex) {
+            JOptionPane.showMessageDialog(
+                this, "Ingrese una fecha válida."
+            );
+        }
+    }
+
+    private void limpiarFormulario() {
+
+        txtBuscar.setText("");
+        txtIdPrestamo.setText("");
+        txtLector.setText("");
+        txtEjemplar.setText("");
+        txtFechaLimite.setText("");
+        txtFechaDevolucion.setText(LocalDate.now().toString());
+        txtDiasRetraso.setText("0");
+        txtObservacion.setText("");
+
+        tabla.clearSelection();
+    }
+}
