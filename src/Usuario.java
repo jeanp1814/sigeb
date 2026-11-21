@@ -28,4 +28,28 @@ public abstract class Usuario{
     public void desactivar(){
         activo = false;
     }
+
+    public int getIdUsuario() {
+        return idUsuario;
+    }
+
+    public String getDocumento() {
+        return documento;
+    }
+
+    public String getNombres() {
+        return nombres;
+    }
+
+    public String getApellidos() {
+        return apellidos;
+    }
+
+    public String getCorreo() {
+        return correo;
+    }
+
+    public boolean getActivo() {
+        return activo;
+    }
 }

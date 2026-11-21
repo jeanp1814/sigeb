@@ -13,4 +13,8 @@ public class Categoria {
         this.nombre = nombre;
         this.descripcion = descripcion;
     }
+
+    public String getNombre() {
+        return nombre;
+    }
 }
