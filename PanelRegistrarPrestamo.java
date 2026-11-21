@@ -89,3 +89,55 @@ public class PanelRegistrarPrestamo extends JPanel {
             }
         };
 
+        tabla = new JTable(modelo);
+        tabla.setRowHeight(25);
+
+        JScrollPane scroll = new JScrollPane(tabla);
+        scroll.setPreferredSize(new Dimension(600, 180));
+
+        panelPrincipal.add(scroll);
+
+        panelPrincipal.add(Box.createVerticalStrut(20));
+
+        // Botones inferiores
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        panelBotones.setBackground(Color.WHITE);
+
+        JButton btnEliminar = new JButton("Eliminar ejemplar");
+        JButton btnRegistrar = new JButton("Registrar préstamo");
+        JButton btnLimpiar = new JButton("Limpiar");
+
+        panelBotones.add(btnEliminar);
+        panelBotones.add(btnLimpiar);
+        panelBotones.add(btnRegistrar);
+
+        panelPrincipal.add(panelBotones);
+
+        add(panelPrincipal, BorderLayout.CENTER);
+
+        // Eventos
+        btnAgregar.addActionListener(e -> agregarEjemplar());
+
+        btnEliminar.addActionListener(e -> eliminarEjemplar());
+
+        btnLimpiar.addActionListener(e -> limpiarFormulario());
+
+        btnRegistrar.addActionListener(e -> registrarPrestamo());
+    }
+
+    private void agregarCampo(
+        JPanel panel, String texto, JTextField campo
+    ) {
+
+        JPanel contenedor = new JPanel(new BorderLayout(5, 5));
+        contenedor.setBackground(Color.WHITE);
+
+        JLabel etiqueta = new JLabel(texto);
+        etiqueta.setFont(new Font("Arial", Font.PLAIN, 13));
+
+        contenedor.add(etiqueta, BorderLayout.NORTH);
+        contenedor.add(campo, BorderLayout.CENTER);
+
+        panel.add(contenedor);
+    }
+
