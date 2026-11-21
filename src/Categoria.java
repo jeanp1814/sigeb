@@ -14,7 +14,15 @@ public class Categoria {
         this.descripcion = descripcion;
     }
 
+    public int getIdCategoria() {
+        return idCategoria;
+    }
+
     public String getNombre() {
         return nombre;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
     }
 }
