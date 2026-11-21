@@ -19,8 +19,16 @@ public class Ejemplar {
         this.estado = estado;
     }
 
+    public int getIdEjemplar() {
+        return idEjemplar;
+    }
+
     public String getCodigoInventario() {
         return codigoInventario;
+    }
+
+    public String getUbicacion() {
+        return ubicacion;
     }
 
     public String getEstado() {

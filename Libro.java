@@ -1,4 +1,3 @@
-
 import java.util.ArrayList;
 
 public class Libro {
@@ -50,12 +49,24 @@ public class Libro {
     }
 
     // Métodos de consulta para mostrar los datos
+    public int getIdLibro() {
+        return idLibro;
+    }
+
     public String getTitulo() {
         return titulo;
     }
 
     public String getIsbn() {
         return isbn;
+    }
+
+    public String getEditorial() {
+        return editorial;
+    }
+
+    public int getAñoPublicacion() {
+        return añoPublicacion;
     }
 
     public Categoria getCategoria() {
