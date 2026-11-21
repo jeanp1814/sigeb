@@ -79,3 +79,92 @@ public class PanelRegistrarDevolucion extends JPanel {
             }
         };
 
+        tabla = new JTable(modelo);
+        tabla.setRowHeight(25);
+
+        JScrollPane scroll = new JScrollPane(tabla);
+        scroll.setPreferredSize(new Dimension(600, 130));
+
+        principal.add(scroll);
+        principal.add(Box.createVerticalStrut(20));
+
+        // Datos de devolución
+        JLabel lblDatos = new JLabel("Datos de la devolución");
+        lblDatos.setFont(new Font("Arial", Font.BOLD, 16));
+
+        principal.add(lblDatos);
+        principal.add(Box.createVerticalStrut(10));
+
+        JPanel panelDatos = new JPanel(new GridLayout(3, 2, 15, 12));
+        panelDatos.setBackground(Color.WHITE);
+
+        txtIdPrestamo = new JTextField();
+        txtLector = new JTextField();
+        txtEjemplar = new JTextField();
+        txtFechaLimite = new JTextField();
+        txtFechaDevolucion = new JTextField(LocalDate.now().toString());
+        txtDiasRetraso = new JTextField("0");
+
+        txtIdPrestamo.setEditable(false);
+        txtLector.setEditable(false);
+        txtEjemplar.setEditable(false);
+        txtFechaLimite.setEditable(false);
+        txtDiasRetraso.setEditable(false);
+
+        agregarCampo(panelDatos, "ID préstamo:", txtIdPrestamo);
+        agregarCampo(panelDatos, "Lector:", txtLector);
+        agregarCampo(panelDatos, "Ejemplar:", txtEjemplar);
+        agregarCampo(panelDatos, "Fecha límite:", txtFechaLimite);
+        agregarCampo(panelDatos, "Fecha devolución:", txtFechaDevolucion);
+        agregarCampo(panelDatos, "Días de retraso:", txtDiasRetraso);
+
+        principal.add(panelDatos);
+        principal.add(Box.createVerticalStrut(15));
+
+        // Observacion
+        JLabel lblObservacion = new JLabel("Observaciones:");
+        lblObservacion.setFont(new Font("Arial", Font.BOLD, 14));
+
+        txtObservacion = new JTextArea(3, 20);
+        txtObservacion.setLineWrap(true);
+        txtObservacion.setWrapStyleWord(true);
+
+        JScrollPane scrollObservacion = new JScrollPane(txtObservacion);
+
+        principal.add(lblObservacion);
+        principal.add(Box.createVerticalStrut(5));
+        principal.add(scrollObservacion);
+        principal.add(Box.createVerticalStrut(15));
+
+        // Botones
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        panelBotones.setBackground(Color.WHITE);
+
+        JButton btnCalcular = new JButton("Calcular retraso");
+        JButton btnRegistrar = new JButton("Registrar devolución");
+        JButton btnLimpiar = new JButton("Limpiar");
+
+        panelBotones.add(btnCalcular);
+        panelBotones.add(btnLimpiar);
+        panelBotones.add(btnRegistrar);
+
+        principal.add(panelBotones);
+
+        add(principal, BorderLayout.CENTER);
+
+        // Eventos
+        btnBuscar.addActionListener(e -> buscarPrestamo());
+
+        tabla.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                seleccionarEjemplar();
+            }
+        });
+
+        btnCalcular.addActionListener(e -> calcularRetraso());
+
+        btnRegistrar.addActionListener(e -> registrarDevolucion());
+
+        btnLimpiar.addActionListener(e -> limpiarFormulario());
+    }
+
