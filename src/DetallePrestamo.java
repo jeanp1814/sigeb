@@ -27,6 +27,10 @@ public class DetallePrestamo {
         this.observacion = observacion;
     }
 
+    public LocalDate getFechaDevolucion() {
+        return fechaDevolucion;
+    }
+
     public int calcularDiasRetraso(LocalDate fecha) {
         if (fecha.isAfter(fechaLimite)) {
             return (int) ChronoUnit.DAYS.between(fechaLimite, fecha);
@@ -38,3 +42,19 @@ public class DetallePrestamo {
     public boolean estaVencido(LocalDate fecha) {
         return fechaDevolucion == null && fecha.isAfter(fechaLimite);
     }
+
+    public Ejemplar getEjemplar() {
+        return ejemplar;
+    }
+
+    public Penalizacion getPenalizacion() {
+        return penalizacion;
+    }
+
+    public void setPenalizacion(Penalizacion penalizacion) {
+        this.penalizacion = penalizacion;
+    }
+    public LocalDate getFechaLimite() {
+        return fechaLimite;
+    }
+}

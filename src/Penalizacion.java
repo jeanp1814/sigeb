@@ -16,16 +16,19 @@ public class Penalizacion {
         this.resuelta = false;
     }
 
-    public BigDecimal calcularMonto(BigDecimal tarifa) {
+    public void calcularMonto(BigDecimal tarifa) {
         monto = tarifa.multiply(BigDecimal.valueOf(diasRetraso));
-        return monto;
     }
 
     public void resolver() {
         resuelta = true;
     }
 
-    public boolean isResuelta() {
+    public boolean getResuelta() {
         return resuelta;
+    }
+
+    public BigDecimal getMonto() {
+        return monto;
     }
 }
