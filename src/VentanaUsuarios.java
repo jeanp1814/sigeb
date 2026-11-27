@@ -1,7 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
 
 public class VentanaUsuarios extends JFrame implements ActionListener {
     private Biblioteca biblioteca;
@@ -102,6 +101,11 @@ public class VentanaUsuarios extends JFrame implements ActionListener {
     private void mostrar() {
         listado.setText("LISTA DE USUARIOS\n\n");
         for (Usuario u : biblioteca.getUsuarios()) {
+            if (u instanceof Lector lector) {
+                listado.append("Lector | Código: " + lector.getCodigoLector() + "\n");
+            } else if (u instanceof Administrador administrador) {
+                listado.append("Administrador | Código: " + administrador.getCodigoAdministrador() + "\n");
+            }
             listado.append(u.identificarse() + "\n\n");
         }
     }
