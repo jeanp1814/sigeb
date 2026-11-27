@@ -3,7 +3,7 @@ import java.awt.*;
 import java.util.ArrayList;
 
 public class VentanaCatalogo extends JFrame {
-    private ArrayList<Libro> libros;
+    private Biblioteca biblioteca;
     private ArrayList<Autor> autores;
     private ArrayList<Categoria> categorias;
     private JTextArea listado = new JTextArea();
@@ -11,8 +11,8 @@ public class VentanaCatalogo extends JFrame {
     private JComboBox<String> secciones = new JComboBox<>(new String[]{"Categorías", "Autores", "Libros", "Ejemplares"});
     private JPanel acciones = new JPanel(new FlowLayout());
 
-    public VentanaCatalogo(ArrayList<Libro> libros, ArrayList<Autor> autores, ArrayList<Categoria> categorias) {
-        this.libros = libros;
+    public VentanaCatalogo(Biblioteca biblioteca, ArrayList<Autor> autores, ArrayList<Categoria> categorias) {
+        this.biblioteca = biblioteca;
         this.autores = autores;
         this.categorias = categorias;
         setTitle("SIGEB - Catálogo");
@@ -67,13 +67,13 @@ public class VentanaCatalogo extends JFrame {
             int id = numero("ID libro:");
             if (libro(id) != null) { aviso("ID repetido"); return; }
             String isbn = pedir("ISBN:"); if (isbn == null) return;
-            for (Libro l : libros) if (l.getIsbn().equals(isbn)) { aviso("ISBN repetido"); return; }
+            for (Libro l : biblioteca.getLibros()) if (l.getIsbn().equals(isbn)) { aviso("ISBN repetido"); return; }
             String titulo = pedir("Título:"); if (titulo == null) return;
             String editorial = pedir("Editorial:"); if (editorial == null) return;
             int anio = numero("Año publicación:");
             Categoria c = categoria(numero("ID categoría (consulte la sección Categorías):"));
             if (c == null) { aviso("Categoría no encontrada"); return; }
-            libros.add(new Libro(id, isbn, titulo, editorial, anio, c));
+            biblioteca.registrarLibro(new Libro(id, isbn, titulo, editorial, anio, c));
             mostrar(); aviso("Libro registrado");
         } catch (Exception ex) { error(); }
     }
@@ -145,7 +145,7 @@ public class VentanaCatalogo extends JFrame {
             int id = numero("ID ejemplar:");
             if (ejemplar(id) != null) { aviso("ID repetido"); return; }
             String codigo = pedir("Código inventario:"); if (codigo == null) return;
-            for (Libro x : libros) for (Ejemplar e : x.getEjemplares())
+            for (Libro x : biblioteca.getLibros()) for (Ejemplar e : x.getEjemplares())
                 if (e.getCodigoInventario().equals(codigo)) { aviso("Código repetido"); return; }
             String ubicacion = pedir("Ubicación:"); if (ubicacion == null) return;
             l.agregarEjemplar(new Ejemplar(id, codigo, ubicacion));
@@ -178,7 +178,7 @@ public class VentanaCatalogo extends JFrame {
         }
         if (seccion == 3) {
             listado.setText("EJEMPLARES\n\n");
-            for (Libro l : libros) for (Ejemplar e : l.getEjemplares())
+            for (Libro l : biblioteca.getLibros()) for (Ejemplar e : l.getEjemplares())
                 listado.append("Libro: " + l.getTitulo() + " | ID: " + e.getIdEjemplar() +
                     " | Código: " + e.getCodigoInventario() + " | Ubicación: " +
                     e.getUbicacion() + " | Estado: " + e.getEstado() + "\n");
@@ -187,7 +187,7 @@ public class VentanaCatalogo extends JFrame {
 
     private void mostrarLibros(String filtro) {
         listado.setText("LIBROS\n\n");
-        for (Libro l : libros) {
+        for (Libro l : biblioteca.getLibros()) {
             if (l.getTitulo().toLowerCase().contains(filtro.toLowerCase()) || l.getIsbn().contains(filtro)) {
                 listado.append("ID: " + l.getIdLibro() + " | ISBN: " + l.getIsbn() +
                     " | " + l.getTitulo() + " | Editorial: " + l.getEditorial() +
@@ -197,11 +197,11 @@ public class VentanaCatalogo extends JFrame {
         }
     }
 
-    private Libro libro(int id) { for (Libro l : libros) if (l.getIdLibro() == id) return l; return null; }
+    private Libro libro(int id) { for (Libro l : biblioteca.getLibros()) if (l.getIdLibro() == id) return l; return null; }
     private Autor autor(int id) { for (Autor a : autores) if (a.getIdAutor() == id) return a; return null; }
     private Categoria categoria(int id) { for (Categoria c : categorias) if (c.getIdCategoria() == id) return c; return null; }
     private Ejemplar ejemplar(int id) {
-        for (Libro l : libros) for (Ejemplar e : l.getEjemplares()) if (e.getIdEjemplar() == id) return e;
+        for (Libro l : biblioteca.getLibros()) for (Ejemplar e : l.getEjemplares()) if (e.getIdEjemplar() == id) return e;
         return null;
     }
     private int numero(String mensaje) { return Integer.parseInt(JOptionPane.showInputDialog(this, mensaje)); }
