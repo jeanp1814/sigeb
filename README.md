@@ -8,7 +8,31 @@ En este sprint se implementó la interfaz gráfica con Java Swing y se integraro
 
 Se incorporaron `Biblioteca`, `AplicacionSIGEB` y las ventanas para gestionar usuarios, catálogo, préstamos, devoluciones, penalizaciones y política de préstamos. Los módulos comparten una misma instancia de `Biblioteca` y utilizan `ActionListener` para responder a los botones.
 
-El proyecto utiliza Java y almacena los datos en memoria durante la ejecución. **Al cerrar la aplicación, los registros se pierden.** El guardado y la lectura de archivos se desarrollarán en el siguiente sprint.
+## Sprint 3 — Persistencia en archivos de texto
+
+SIGEB carga al inicio los usuarios, la política de préstamos, el catálogo y el historial de préstamos. El botón **Guardar datos** de la ventana principal guarda las modificaciones de todos los módulos. La opción **Guardar** del formulario de política aplica las reglas a la sesión. Después, **Guardar datos** las escribe en disco.
+
+Ejecuta SIGEB desde la raíz del proyecto para guardar y cargar los nueve archivos en el mismo lugar. En la primera ejecución los registros empiezan vacíos y se aplica la política de 7 días, 3 ejemplares activos, 1.50 de tarifa diaria y bloqueo por penalización pendiente. SIGEB también puede abrir los archivos `usuarios.txt` y `politica.txt` generados por la entrega anterior.
+
+### Formato de los archivos
+
+| Archivo | Campos en orden |
+|---|---|
+| `usuarios.txt` | Tipo, ID, documento, nombres, apellidos, correo, activo, código |
+| `politica.txt` | Días de préstamo, máximo de ejemplares activos, tarifa diaria, bloqueo por penalización |
+| `autores.txt` | ID de autor, nombre completo |
+| `categorias.txt` | ID de categoría, nombre, descripción |
+| `libros.txt` | ID de libro, ISBN, título, editorial, año, ID de categoría, IDs de autores |
+| `ejemplares.txt` | ID de ejemplar, ID de libro, código de inventario, ubicación, estado |
+| `prestamos.txt` | ID de préstamo, fecha del préstamo, ID de lector, ID del administrador que lo registró |
+| `detalles.txt` | ID de detalle, ID de préstamo, ID de ejemplar, fecha límite, fecha de devolución, ID del administrador de devolución, observación |
+| `penalizaciones.txt` | ID de penalización, ID de detalle, motivo, días de retraso, monto, resuelta |
+
+Cada registro ocupa una línea en UTF-8 y usa `|` como separador. Los IDs de autores de un libro se separan con comas y ese campo puede quedar vacío. En los detalles pendientes quedan vacíos los tres campos de devolución. Las fechas usan `AAAA-MM-DD` y los booleanos son `true` o `false`. En los campos de texto se codifican el separador, el signo `%` y los saltos de línea.
+
+`PersistenciaSIGEB` coordina la carga de usuarios y política, luego llama a `PersistenciaCatalogo` y finalmente a `PersistenciaPrestamos`. Este orden permite reconstruir las relaciones por ID con los objetos registrados en `Biblioteca`. Los archivos se validan antes de aplicar la carga. Si hay un ID duplicado, una referencia inexistente o un formato incorrecto, la aplicación muestra un error.
+
+La implementación sigue el capítulo 7 de los PDF **Tema07 Archivos2026 1** y **Tema07 Archivos2026 2**. Usa `FileWriter` y `PrintWriter.println()` para escribir, y `FileReader` y `Scanner.nextLine()` para leer los registros secuencialmente.
 
 ## Requisitos
 
@@ -26,58 +50,38 @@ No se requieren bibliotecas externas.
 | `src/` | Clases del modelo, Biblioteca, AplicacionSIGEB y ventanas GUI. |
 | `SIGEB_UML.png` | Diagrama de clases actualizado. |
 | `README.md` | Descripción e instrucciones. |
+| Archivos `.txt` | Los nueve archivos de datos se generan al pulsar **Guardar datos**. |
 | `out/` | Archivos compilados; se genera al compilar. |
 
 ## Cómo ejecutar
 
-### 1. Abrir el proyecto
+Abre una terminal en la carpeta `sigeb`, donde están `src/` y `README.md`. Comprueba que tienes JDK 17 o superior y acceso a una sesión gráfica para abrir Swing.
 
-Descarga y descomprime el proyecto o clona el repositorio.
-
-Abre una terminal dentro de la carpeta `sigeb`, donde se encuentran `src` y `README.md`.
-
-### 2. Comprobar Java
-
-Ejecuta:
-
-```bash
+```text
 java -version
 javac -version
 ```
 
-Ambos comandos deben mostrar la versión instalada. Si `javac` no está disponible, comprueba que tengas instalado un JDK completo y configurado en PATH.
-
-### 3. Compilar
-
-Desde la raíz del proyecto:
+### Linux, macOS o Git Bash
 
 ```bash
 javac -encoding UTF-8 -d out src/*.java
-```
-
-Este comando compila las clases de `src` y guarda los archivos `.class` en `out`. La carpeta `out` se crea automáticamente.
-
-Si no aparecen errores, la compilación finalizó correctamente.
-
-### 4. Ejecutar la aplicación
-
-```bash
 java -cp out AplicacionSIGEB
 ```
 
-Se abrirá la ventana principal de SIGEB, con acceso a **Usuarios**, **Catálogo e inventario** y **Préstamos y devoluciones**.
+### Windows PowerShell
 
-Cada vez que se modifique el código, se debe volver a compilar antes de ejecutar.
+```powershell
+$fuentes = (Get-ChildItem -Path src -Filter *.java).FullName
+javac -encoding UTF-8 -d out $fuentes
+java -cp out AplicacionSIGEB
+```
 
-## Ejecutar en Visual Studio Code
+Compila con `-encoding UTF-8` para que Java lea correctamente nombres como `añoPublicacion` y `getAñoPublicacion()`. La carpeta `out/` se crea al compilar. Repite la compilación después de modificar el código.
 
-1. Abre la carpeta `sigeb` con **Archivo > Abrir carpeta**.
-2. Comprueba que tengas instalado el JDK y Extension Pack for Java.
-3. Abre `src/AplicacionSIGEB.java`.
-4. Pulsa **Run Java** sobre el método `main`.
-5. Utiliza los botones de la ventana principal para acceder a los módulos.
+### Visual Studio Code
 
-También puedes compilar y ejecutar con los comandos anteriores desde la terminal integrada.
+Abre la carpeta completa `sigeb` e instala **Extension Pack for Java**. En `src/AplicacionSIGEB.java`, pulsa **Run Java** sobre `main`. También puedes usar los comandos anteriores desde la terminal integrada, abierta en la raíz de `sigeb`.
 
 ## Cómo usar la aplicación
 
@@ -86,7 +90,7 @@ También puedes compilar y ejecutar con los comandos anteriores desde la termina
 1. Pulsa **Usuarios** en la ventana principal.
 2. Selecciona el tipo: lector o administrador.
 3. Completa ID, documento, nombres, apellidos, correo y código.
-4. Pulsa **Registrar** para guardar el usuario en memoria.
+4. Pulsa **Registrar** para agregar el usuario a la sesión. Usa **Guardar datos** en la ventana principal para conservarlo al cerrar.
 5. Usa **Listar** para actualizar el listado.
 
 Para actualizar un usuario, escribe su ID y los nuevos nombres, apellidos y correo; después pulsa **Actualizar**. Para desactivarlo, escribe su ID y pulsa **Desactivar**.
@@ -130,10 +134,10 @@ La fecha no puede ser anterior al préstamo ni posterior al día actual. La devo
 
 ### 6. Política de préstamos
 
-1. Abre **Política de préstamos**.
+1. Abre **Préstamos y devoluciones** y selecciona **Politica de prestamos**.
 2. Configura los días, el máximo de ejemplares y la tarifa diaria.
 3. Indica si se bloquearán nuevos préstamos por penalizaciones pendientes.
-4. Pulsa **Guardar**.
+4. Pulsa **Guardar** para aplicar la política en la sesión. Vuelve a la ventana principal y pulsa **Guardar datos** para escribirla en disco.
 
 Los días y el máximo deben ser positivos; la tarifa no puede ser negativa. Usa punto decimal, por ejemplo: `1.50`.
 
@@ -161,22 +165,20 @@ Los formularios cargan sus selectores al abrirse. Si registras datos nuevos desd
 | No aparecen lectores o administradores | Registrar usuarios activos y volver a abrir el formulario de préstamos. |
 | No aparecen ejemplares disponibles | Registrar libros y ejemplares antes de abrir el formulario. |
 | Los cambios no aparecen en una consulta | Pulsar **Actualizar** o volver a abrir la ventana. |
-| Los datos desaparecen al cerrar | En este sprint los datos solo se almacenan en memoria. |
+| Los datos no aparecen al volver a abrir | Pulsa **Guardar datos** antes de cerrar y vuelve a ejecutar SIGEB desde el mismo directorio. |
+| Al iniciar aparece un error de lectura | Corrige o recupera el archivo indicado y vuelve a ejecutar la aplicación. |
 
-## Próximo sprint
+## Prueba de persistencia
 
-El Sprint 3 se centrará en la entrada y salida de archivos para conservar la información entre ejecuciones.
+1. Registra un lector y un administrador activos. En **Catálogo e inventario**, crea una categoría, dos autores y un libro. Asigna ambos autores y agrega dos ejemplares.
+2. Registra un préstamo con ambos ejemplares. Devuelve uno desde **Registrar devolución** y deja el otro pendiente.
+3. Pulsa **Guardar datos**, cierra SIGEB y ábrelo desde la misma carpeta.
+4. En **Catálogo e inventario > Libros** revisa la categoría y los autores. En **Ejemplares** revisa la disponibilidad de las dos copias. En **Consultar préstamos**, revisa el historial y confirma que solo uno aparece como pendiente.
+5. Devuelve el ejemplar pendiente. Guarda y reinicia. Comprueba que el préstamo quedó cerrado y que ambos ejemplares están disponibles.
+6. Para comprobar una penalización, usa un préstamo cuya fecha límite ya haya pasado y registra la devolución con la fecha actual. Guarda y reinicia. Verifica en **Penalizaciones** el importe y el estado. Resuelve la penalización y repite la comprobación.
 
-- Guardar y recuperar usuarios y política de préstamos.
-- Guardar y recuperar autores, categorías, libros y ejemplares.
-- Guardar y recuperar préstamos, devoluciones y penalizaciones.
-- Mantener las relaciones entre registros mediante sus IDs.
-- Evitar duplicados durante la carga.
-- Manejar archivos inexistentes y errores de lectura o escritura.
-- Verificar que los datos se mantengan al cerrar y abrir la aplicación.
-
-Se propone comenzar con archivos de texto utilizando `PrintWriter`, `FileWriter`, `Scanner` y `FileReader`, de acuerdo con lo trabajado en clase.
+Las pruebas automatizadas de persistencia usaron ejecuciones separadas de Java para verificar el catálogo, un préstamo parcialmente devuelto, una penalización pendiente y su resolución. También comprobaron la carga de archivos de la entrega anterior y el rechazo de referencias inexistentes y registros duplicados. Los pasos anteriores describen cómo repetir la comprobación manual desde Swing.
 
 ## Diagrama UML
 
-![Diagrama UML de SIGEB](SIGEB_UML.png)
+![Diagrama UML de SIGEB](UML.png)

@@ -6,4 +6,7 @@ public class Administrador extends Usuario {
         this.codigoAdministrador = codigoAdministrador;
     }
     
+    public String getCodigoAdministrador() {
+        return codigoAdministrador;
+    }
 }

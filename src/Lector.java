@@ -6,4 +6,7 @@ public class Lector extends Usuario {
         this.codigoLector = codigoLector;
     }
     
+    public String getCodigoLector() {
+        return codigoLector;
+    }
 }

@@ -5,6 +5,8 @@ import java.util.Locale;
 public class Biblioteca {
     private String nombre;
     private ArrayList<Usuario> usuarios;
+    private ArrayList<Autor> autores;
+    private ArrayList<Categoria> categorias;
     private ArrayList<Libro> libros;
     private ArrayList<Prestamo> prestamos;
     private PoliticaPrestamo politica;
@@ -13,6 +15,8 @@ public class Biblioteca {
         this.nombre = nombre;
         this.politica = politica;
         usuarios = new ArrayList<>();
+        autores = new ArrayList<>();
+        categorias = new ArrayList<>();
         libros = new ArrayList<>();
         prestamos = new ArrayList<>();
     }
@@ -52,6 +56,24 @@ public class Biblioteca {
         }
 
         System.out.println("Usuario no registrado.");
+    }
+
+    public void registrarAutor(Autor autor) {
+        for (Autor actual : autores) {
+            if (actual.getIdAutor() == autor.getIdAutor()) {
+                return;
+            }
+        }
+        autores.add(autor);
+    }
+
+    public void registrarCategoria(Categoria categoria) {
+        for (Categoria actual : categorias) {
+            if (actual.getIdCategoria() == categoria.getIdCategoria()) {
+                return;
+            }
+        }
+        categorias.add(categoria);
     }
 
     public void registrarLibro(Libro libro) {
@@ -108,16 +130,23 @@ public class Biblioteca {
             return;
         }
 
-        for (Prestamo prestamo : prestamos) {
-            for (DetallePrestamo detalle : prestamo.obtenerPendientes()) {
-                if (detalle.getEjemplar() == ejemplar) {
-                    System.out.println("El ejemplar tiene un prestamo pendiente.");
-                    return;
-                }
-            }
+        if (tienePrestamoPendiente(ejemplar)) {
+            System.out.println("El ejemplar tiene un prestamo pendiente.");
+            return;
         }
 
         ejemplar.cambiarEstado("Baja");
+    }
+
+    public boolean tienePrestamoPendiente(Ejemplar ejemplar) {
+        for (Prestamo prestamo : prestamos) {
+            for (DetallePrestamo detalle : prestamo.obtenerPendientes()) {
+                if (detalle.getEjemplar() == ejemplar) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public ArrayList<Libro> buscarLibros(String campo, String texto) {
@@ -218,13 +247,16 @@ public class Biblioteca {
 
         LocalDate fecha = LocalDate.now();
 
-        Prestamo prestamo = new Prestamo(prestamos.size() + 1, fecha, lector, admin);
-
-        int idDetalle = 1;
-
+        int ultimoPrestamo = 0;
+        int ultimoDetalle = 0;
         for (Prestamo anterior : prestamos) {
-            idDetalle += anterior.getDetalles().size();
+            ultimoPrestamo = Math.max(ultimoPrestamo, anterior.getIdPrestamo());
+            for (DetallePrestamo detalle : anterior.getDetalles()) {
+                ultimoDetalle = Math.max(ultimoDetalle, detalle.getIdDetalle());
+            }
         }
+        Prestamo prestamo = new Prestamo(ultimoPrestamo + 1, fecha, lector, admin);
+        int idDetalle = ultimoDetalle + 1;
 
         for (Ejemplar ejemplar : seleccionados) {
             DetallePrestamo detalle = new DetallePrestamo(idDetalle++,ejemplar, politica.calcularFechaLimite(fecha));
@@ -253,7 +285,7 @@ public class Biblioteca {
 
             for (DetallePrestamo actual : prestamo.getDetalles()) {
                 if (actual.getPenalizacion() != null) {
-                    idPenalizacion++;
+                    idPenalizacion = Math.max(idPenalizacion, actual.getPenalizacion().getIdPenalizacion() + 1);
                 }
             }
         }
@@ -345,6 +377,42 @@ public class Biblioteca {
 
     public ArrayList<Usuario> getUsuarios() {
         return new ArrayList<>(usuarios);
+    }
+
+    public ArrayList<Autor> getAutores() {
+        return new ArrayList<>(autores);
+    }
+
+    public ArrayList<Categoria> getCategorias() {
+        return new ArrayList<>(categorias);
+    }
+
+    Biblioteca copiaParaCarga() {
+        PoliticaPrestamo politicaCopia = new PoliticaPrestamo(politica.getDiasPrestamo(),
+                politica.getMaximoEjemplaresActivos(), politica.getPenalizacionPorDia(),
+                politica.getBloquearPorPenalizacion());
+        Biblioteca copia = new Biblioteca(nombre, politicaCopia);
+        copia.usuarios.addAll(usuarios);
+        copia.autores.addAll(autores);
+        copia.categorias.addAll(categorias);
+        copia.libros.addAll(libros);
+        copia.prestamos.addAll(prestamos);
+        return copia;
+    }
+
+    void aplicarCarga(Biblioteca copia) {
+        usuarios = copia.usuarios;
+        autores = copia.autores;
+        categorias = copia.categorias;
+        libros = copia.libros;
+        prestamos = copia.prestamos;
+        PoliticaPrestamo reglas = copia.getPolitica();
+        politica.actualizarReglas(reglas.getDiasPrestamo(), reglas.getMaximoEjemplaresActivos(),
+                reglas.getPenalizacionPorDia(), reglas.getBloquearPorPenalizacion());
+    }
+
+    void incorporarPrestamo(Prestamo prestamo) {
+        prestamos.add(prestamo);
     }
 
     public ArrayList<Libro> getLibros() {

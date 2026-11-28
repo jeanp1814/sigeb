@@ -1,9 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.time.LocalDate;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 
 public class VentanaPoliticaPrestamos extends JFrame implements ActionListener {
     private Biblioteca biblioteca;
@@ -19,8 +17,7 @@ public class VentanaPoliticaPrestamos extends JFrame implements ActionListener {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
         PoliticaPrestamo politica = biblioteca.getPolitica();
-        dias.setText(String.valueOf(java.time.temporal.ChronoUnit.DAYS.between(
-                LocalDate.now(), politica.calcularFechaLimite(LocalDate.now()))));
+        dias.setText(String.valueOf(politica.getDiasPrestamo()));
         maximo.setText(String.valueOf(politica.getMaximoEjemplaresActivos()));
         tarifa.setText(politica.getPenalizacionPorDia().toPlainString());
         bloquear.setSelected(politica.getBloquearPorPenalizacion());

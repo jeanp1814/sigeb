@@ -1,8 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.time.LocalDate;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 
 public class VentanaPenalizaciones extends JFrame implements ActionListener {
