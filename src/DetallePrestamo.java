@@ -27,6 +27,18 @@ public class DetallePrestamo {
         this.observacion = observacion;
     }
 
+    public int getIdDetalle() {
+        return idDetalle;
+    }
+
+    public Administrador getDevueltoPor() {
+        return devueltoPor;
+    }
+
+    public String getObservacion() {
+        return observacion;
+    }
+
     public LocalDate getFechaDevolucion() {
         return fechaDevolucion;
     }
