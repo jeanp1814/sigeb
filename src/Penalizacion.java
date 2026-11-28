@@ -9,11 +9,15 @@ public class Penalizacion {
     private boolean resuelta;
 
     public Penalizacion(int id, String motivo, int dias) {
+        this(id, motivo, dias, BigDecimal.ZERO, false);
+    }
+
+    Penalizacion(int id, String motivo, int dias, BigDecimal monto, boolean resuelta) {
         this.idPenalizacion = id;
         this.motivo = motivo;
         this.diasRetraso = dias;
-        this.monto = BigDecimal.ZERO;
-        this.resuelta = false;
+        this.monto = monto;
+        this.resuelta = resuelta;
     }
 
     public void calcularMonto(BigDecimal tarifa) {
@@ -22,6 +26,18 @@ public class Penalizacion {
 
     public void resolver() {
         resuelta = true;
+    }
+
+    public int getIdPenalizacion() {
+        return idPenalizacion;
+    }
+
+    public String getMotivo() {
+        return motivo;
+    }
+
+    public int getDiasRetraso() {
+        return diasRetraso;
     }
 
     public boolean getResuelta() {
