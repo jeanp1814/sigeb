@@ -2,13 +2,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
-import java.util.ArrayList;
 
 public class VentanaPrincipal extends JFrame implements ActionListener {
     private final Biblioteca biblioteca;
     private final PersistenciaSIGEB persistencia;
-    private final ArrayList<Autor> autores = new ArrayList<>();
-    private final ArrayList<Categoria> categorias = new ArrayList<>();
 
     private final JButton usuarios = new JButton("Usuarios");
     private final JButton catalogo = new JButton("Catálogo e inventario");
@@ -42,7 +39,7 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
         if (evento.getSource() == usuarios) {
             new VentanaUsuarios(biblioteca).setVisible(true);
         } else if (evento.getSource() == catalogo) {
-            new VentanaCatalogo(biblioteca, autores, categorias).setVisible(true);
+            new VentanaCatalogo(biblioteca).setVisible(true);
         } else if (evento.getSource() == prestamos) {
             new VentanaPrestamosDevoluciones(biblioteca);
         } else if (evento.getSource() == guardar) {
