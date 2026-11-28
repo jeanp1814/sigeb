@@ -1,20 +1,16 @@
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.StringJoiner;
 
 public class VentanaCatalogo extends JFrame {
     private Biblioteca biblioteca;
-    private ArrayList<Autor> autores;
-    private ArrayList<Categoria> categorias;
     private JTextArea listado = new JTextArea();
     private JTextField buscar = new JTextField(18);
     private JComboBox<String> secciones = new JComboBox<>(new String[]{"Categorías", "Autores", "Libros", "Ejemplares"});
     private JPanel acciones = new JPanel(new FlowLayout());
 
-    public VentanaCatalogo(Biblioteca biblioteca, ArrayList<Autor> autores, ArrayList<Categoria> categorias) {
+    public VentanaCatalogo(Biblioteca biblioteca) {
         this.biblioteca = biblioteca;
-        this.autores = autores;
-        this.categorias = categorias;
         setTitle("SIGEB - Catálogo");
         setSize(900, 550);
         setLocationRelativeTo(null);
@@ -105,7 +101,7 @@ public class VentanaCatalogo extends JFrame {
             int id = numero("ID autor:");
             if (autor(id) != null) { aviso("ID repetido"); return; }
             String nombre = pedir("Nombre completo:"); if (nombre == null) return;
-            autores.add(new Autor(id, nombre)); mostrar(); aviso("Autor registrado");
+            biblioteca.registrarAutor(new Autor(id, nombre)); mostrar(); aviso("Autor registrado");
         } catch (Exception ex) { error(); }
     }
 
@@ -124,7 +120,7 @@ public class VentanaCatalogo extends JFrame {
             if (categoria(id) != null) { aviso("ID repetido"); return; }
             String nombre = pedir("Nombre:"); if (nombre == null) return;
             String desc = pedir("Descripción:"); if (desc == null) return;
-            categorias.add(new Categoria(id, nombre, desc)); mostrar(); aviso("Categoría registrada");
+            biblioteca.registrarCategoria(new Categoria(id, nombre, desc)); mostrar(); aviso("Categoría registrada");
         } catch (Exception ex) { error(); }
     }
 
@@ -148,7 +144,7 @@ public class VentanaCatalogo extends JFrame {
             for (Libro x : biblioteca.getLibros()) for (Ejemplar e : x.getEjemplares())
                 if (e.getCodigoInventario().equals(codigo)) { aviso("Código repetido"); return; }
             String ubicacion = pedir("Ubicación:"); if (ubicacion == null) return;
-            l.agregarEjemplar(new Ejemplar(id, codigo, ubicacion));
+            biblioteca.registrarEjemplar(l, new Ejemplar(id, codigo, ubicacion));
             mostrar(); aviso("Ejemplar agregado");
         } catch (Exception ex) { error(); }
     }
@@ -157,6 +153,10 @@ public class VentanaCatalogo extends JFrame {
         try {
             Ejemplar e = ejemplar(numero("ID ejemplar:"));
             if (e == null) { aviso("Ejemplar no encontrado"); return; }
+            if (biblioteca.tienePrestamoPendiente(e)) {
+                aviso("Registre la devolución antes de cambiar el estado.");
+                return;
+            }
             String[] opciones = {"Disponible", "Prestado", "Mantenimiento", "Perdido"};
             String estado = (String) JOptionPane.showInputDialog(this, "Nuevo estado:",
                 "Estado", JOptionPane.QUESTION_MESSAGE, null, opciones, opciones[0]);
@@ -170,11 +170,11 @@ public class VentanaCatalogo extends JFrame {
         if (seccion == 2) mostrarLibros("");
         if (seccion == 1) {
             listado.setText("AUTORES\n\n");
-            for (Autor a : autores) listado.append("ID: " + a.getIdAutor() + " | " + a.getNombreCompleto() + "\n");
+            for (Autor a : biblioteca.getAutores()) listado.append("ID: " + a.getIdAutor() + " | " + a.getNombreCompleto() + "\n");
         }
         if (seccion == 0) {
             listado.setText("CATEGORÍAS\n\n");
-            for (Categoria c : categorias) listado.append("ID: " + c.getIdCategoria() + " | " + c.getNombre() + " | " + c.getDescripcion() + "\n");
+            for (Categoria c : biblioteca.getCategorias()) listado.append("ID: " + c.getIdCategoria() + " | " + c.getNombre() + " | " + c.getDescripcion() + "\n");
         }
         if (seccion == 3) {
             listado.setText("EJEMPLARES\n\n");
@@ -189,17 +189,22 @@ public class VentanaCatalogo extends JFrame {
         listado.setText("LIBROS\n\n");
         for (Libro l : biblioteca.getLibros()) {
             if (l.getTitulo().toLowerCase().contains(filtro.toLowerCase()) || l.getIsbn().contains(filtro)) {
+                StringJoiner autoresDelLibro = new StringJoiner(", ");
+                for (Autor autor : l.getAutores()) {
+                    autoresDelLibro.add(autor.getNombreCompleto());
+                }
+                String autores = autoresDelLibro.length() == 0 ? "Sin asignar" : autoresDelLibro.toString();
                 listado.append("ID: " + l.getIdLibro() + " | ISBN: " + l.getIsbn() +
                     " | " + l.getTitulo() + " | Editorial: " + l.getEditorial() +
                     " | Año: " + l.getAñoPublicacion() + " | Categoría: " +
-                    l.getCategoria().getNombre() + " | Disponibles: " + l.contarDisponibles() + "\n");
+                    l.getCategoria().getNombre() + " | Autores: " + autores + " | Disponibles: " + l.contarDisponibles() + "\n");
             }
         }
     }
 
     private Libro libro(int id) { for (Libro l : biblioteca.getLibros()) if (l.getIdLibro() == id) return l; return null; }
-    private Autor autor(int id) { for (Autor a : autores) if (a.getIdAutor() == id) return a; return null; }
-    private Categoria categoria(int id) { for (Categoria c : categorias) if (c.getIdCategoria() == id) return c; return null; }
+    private Autor autor(int id) { for (Autor a : biblioteca.getAutores()) if (a.getIdAutor() == id) return a; return null; }
+    private Categoria categoria(int id) { for (Categoria c : biblioteca.getCategorias()) if (c.getIdCategoria() == id) return c; return null; }
     private Ejemplar ejemplar(int id) {
         for (Libro l : biblioteca.getLibros()) for (Ejemplar e : l.getEjemplares()) if (e.getIdEjemplar() == id) return e;
         return null;

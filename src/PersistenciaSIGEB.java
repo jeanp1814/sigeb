@@ -1,163 +1,179 @@
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Scanner;
 import java.util.Set;
 
 import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public class PersistenciaSIGEB {
+    private static final String USUARIOS = "usuarios.txt";
+    private static final String POLITICA = "politica.txt";
+    private static final List<String> ARCHIVOS = List.of(USUARIOS, POLITICA,
+            PersistenciaCatalogo.AUTORES, PersistenciaCatalogo.CATEGORIAS, PersistenciaCatalogo.LIBROS,
+            PersistenciaCatalogo.EJEMPLARES, PersistenciaPrestamos.PRESTAMOS,
+            PersistenciaPrestamos.DETALLES, PersistenciaPrestamos.PENALIZACIONES);
+
     private final Path directorio;
-    private final Path archivoUsuarios;
-    private final Path archivoPolitica;
 
     public PersistenciaSIGEB(Path directorio) {
         this.directorio = directorio;
-        archivoUsuarios = directorio.resolve("usuarios.txt");
-        archivoPolitica = directorio.resolve("politica.txt");
     }
 
     public void cargar(Biblioteca biblioteca) throws IOException {
-        ArrayList<Usuario> usuarios = leerUsuarios(biblioteca.getUsuarios());
-        PoliticaPrestamo politica = leerPolitica();
+        Biblioteca copia = biblioteca.copiaParaCarga();
+        cargarDesde(directorio, copia);
+        biblioteca.aplicarCarga(copia);
+    }
 
-        for (Usuario usuario : usuarios) {
-            biblioteca.registrarUsuario(usuario);
-        }
-        if (politica != null) {
-            biblioteca.getPolitica().actualizarReglas(politica.getDiasPrestamo(),
-                    politica.getMaximoEjemplaresActivos(), politica.getPenalizacionPorDia(),
-                    politica.getBloquearPorPenalizacion());
-        }
+    private static void cargarDesde(Path origen, Biblioteca biblioteca) throws IOException {
+        cargarUsuarios(origen.resolve(USUARIOS), biblioteca);
+        cargarPolitica(origen.resolve(POLITICA), biblioteca.getPolitica());
+        PersistenciaCatalogo.cargar(origen, biblioteca);
+        PersistenciaPrestamos.cargar(origen, biblioteca);
     }
 
     public void guardar(Biblioteca biblioteca) throws IOException {
-        if (Files.isDirectory(archivoUsuarios) || Files.isDirectory(archivoPolitica)) {
-            throw new IOException("usuarios.txt y politica.txt deben ser archivos.");
-        }
-
-        Path usuariosTemporal = Files.createTempFile(directorio, "usuarios-", ".tmp");
-        try {
-            Path politicaTemporal = Files.createTempFile(directorio, "politica-", ".tmp");
-            try {
-                escribirUsuarios(usuariosTemporal, biblioteca.getUsuarios());
-                escribirPolitica(politicaTemporal, biblioteca.getPolitica());
-                reemplazarArchivo(usuariosTemporal, archivoUsuarios);
-                reemplazarArchivo(politicaTemporal, archivoPolitica);
-            } finally {
-                Files.deleteIfExists(politicaTemporal);
+        for (String nombre : ARCHIVOS) {
+            if (Files.isDirectory(directorio.resolve(nombre))) {
+                throw new IOException("Los destinos deben ser archivos: " + nombre + ".");
             }
-        } finally {
-            Files.deleteIfExists(usuariosTemporal);
         }
-    }
 
-    private void reemplazarArchivo(Path temporal, Path destino) throws IOException {
+        Path temporal = Files.createTempDirectory(directorio, ".sigeb-");
+        Path nuevos = temporal.resolve("nuevos");
+        Path anteriores = temporal.resolve("anteriores");
+        boolean conservarRespaldo = false;
         try {
-            Files.move(temporal, destino, ATOMIC_MOVE, REPLACE_EXISTING);
-        } catch (AtomicMoveNotSupportedException error) {
-            Files.move(temporal, destino, REPLACE_EXISTING);
+            Files.createDirectory(nuevos);
+            Files.createDirectory(anteriores);
+            escribirUsuarios(nuevos.resolve(USUARIOS), biblioteca);
+            escribirPolitica(nuevos.resolve(POLITICA), biblioteca.getPolitica());
+            PersistenciaCatalogo.guardar(nuevos, biblioteca);
+            PersistenciaPrestamos.guardar(nuevos, biblioteca);
+
+            cargarDesde(nuevos, new Biblioteca(biblioteca.getNombre(),
+                    new PoliticaPrestamo(7, 3, new BigDecimal("1.50"), true)));
+            publicar(nuevos, anteriores);
+        } catch (ErrorRecuperacion error) {
+            conservarRespaldo = true;
+            throw error;
+        } finally {
+            if (!conservarRespaldo) {
+                for (String nombre : ARCHIVOS) {
+                    Files.deleteIfExists(nuevos.resolve(nombre));
+                    Files.deleteIfExists(anteriores.resolve(nombre));
+                }
+                Files.deleteIfExists(nuevos);
+                Files.deleteIfExists(anteriores);
+                Files.deleteIfExists(temporal);
+            }
         }
     }
 
-    private ArrayList<Usuario> leerUsuarios(List<Usuario> existentes) throws IOException {
-        ArrayList<Usuario> usuarios = new ArrayList<>();
-        if (Files.notExists(archivoUsuarios)) {
-            return usuarios;
+    private void publicar(Path nuevos, Path anteriores) throws IOException {
+        Set<String> respaldados = new HashSet<>();
+        for (String nombre : ARCHIVOS) {
+            Path destino = directorio.resolve(nombre);
+            if (!Files.notExists(destino)) {
+                Files.copy(destino, anteriores.resolve(nombre));
+                respaldados.add(nombre);
+            }
         }
+
+        List<String> actualizados = new ArrayList<>();
+        try {
+            for (String nombre : ARCHIVOS) {
+                actualizados.add(nombre);
+                mover(nuevos.resolve(nombre), directorio.resolve(nombre));
+            }
+        } catch (IOException original) {
+            ErrorRecuperacion errorRecuperacion = null;
+            for (int i = actualizados.size() - 1; i >= 0; i--) {
+                String nombre = actualizados.get(i);
+                Path destino = directorio.resolve(nombre);
+                try {
+                    if (respaldados.contains(nombre)) {
+                        Files.copy(anteriores.resolve(nombre), destino, REPLACE_EXISTING);
+                    } else {
+                        Files.deleteIfExists(destino);
+                    }
+                } catch (IOException error) {
+                    if (errorRecuperacion == null) {
+                        errorRecuperacion = new ErrorRecuperacion(anteriores.toAbsolutePath(), original);
+                    }
+                    errorRecuperacion.addSuppressed(error);
+                }
+            }
+            if (errorRecuperacion != null) {
+                throw errorRecuperacion;
+            }
+            throw original;
+        }
+    }
+
+    private static void mover(Path origen, Path destino) throws IOException {
+        try {
+            Files.move(origen, destino, ATOMIC_MOVE, REPLACE_EXISTING);
+        } catch (AtomicMoveNotSupportedException error) {
+            Files.move(origen, destino, REPLACE_EXISTING);
+        }
+    }
+
+    private static void cargarUsuarios(Path archivo, Biblioteca biblioteca) throws IOException {
         Set<Integer> ids = new HashSet<>();
         Set<String> documentos = new HashSet<>();
-        for (Usuario usuario : existentes) {
+        for (Usuario usuario : biblioteca.getUsuarios()) {
             ids.add(usuario.getIdUsuario());
             documentos.add(usuario.getDocumento());
         }
-
-        try (Scanner entrada = new Scanner(new FileReader(archivoUsuarios.toFile(), StandardCharsets.UTF_8))) {
-            int numeroLinea = 0;
-            while (entrada.hasNextLine()) {
-                String linea = entrada.nextLine();
-                numeroLinea++;
-                try {
-                    Usuario usuario = leerUsuario(linea);
-                    if (!ids.add(usuario.getIdUsuario()) || !documentos.add(usuario.getDocumento())) {
-                        throw new IllegalArgumentException("ID o documento repetido.");
-                    }
-                    usuarios.add(usuario);
-                } catch (IllegalArgumentException error) {
-                    throw new IOException("usuarios.txt, línea " + numeroLinea + ": " + error.getMessage(), error);
-                }
+        ArchivoTexto.leer(archivo, 8, campos -> {
+            int id = Integer.parseInt(campos[1]);
+            if (!ids.add(id) || !documentos.add(campos[2])) {
+                throw new IllegalArgumentException("ID o documento repetido.");
             }
-            if (entrada.ioException() != null) {
-                throw entrada.ioException();
+            Usuario usuario = switch (campos[0]) {
+                case "LECTOR" -> new Lector(id, campos[2], campos[3], campos[4], campos[5], campos[7]);
+                case "ADMINISTRADOR" -> new Administrador(id, campos[2], campos[3], campos[4], campos[5], campos[7]);
+                default -> throw new IllegalArgumentException("Tipo de usuario inválido.");
+            };
+            if (!ArchivoTexto.booleano(campos[6])) {
+                usuario.desactivar();
             }
-        }
-        return usuarios;
+            biblioteca.registrarUsuario(usuario);
+        });
     }
 
-    private Usuario leerUsuario(String linea) {
-        String[] campos = linea.split("\\|", -1);
-        if (campos.length != 8) {
-            throw new IllegalArgumentException("Se esperaban ocho campos.");
+    private static void cargarPolitica(Path archivo, PoliticaPrestamo politica) throws IOException {
+        if (Files.notExists(archivo)) {
+            return;
         }
-        int id = Integer.parseInt(campos[1]);
-        String documento = desescapar(campos[2]);
-        String nombres = desescapar(campos[3]);
-        String apellidos = desescapar(campos[4]);
-        String correo = desescapar(campos[5]);
-        boolean activo = leerBooleano(campos[6]);
-        String codigo = desescapar(campos[7]);
-
-        Usuario usuario = switch (campos[0]) {
-            case "LECTOR" -> new Lector(id, documento, nombres, apellidos, correo, codigo);
-            case "ADMINISTRADOR" -> new Administrador(id, documento, nombres, apellidos, correo, codigo);
-            default -> throw new IllegalArgumentException("Tipo de usuario inválido.");
-        };
-        if (!activo) {
-            usuario.desactivar();
-        }
-        return usuario;
-    }
-
-    private PoliticaPrestamo leerPolitica() throws IOException {
-        if (Files.notExists(archivoPolitica)) {
-            return null;
-        }
-        try (Scanner entrada = new Scanner(new FileReader(archivoPolitica.toFile(), StandardCharsets.UTF_8))) {
-            String linea = entrada.hasNextLine() ? entrada.nextLine() : "";
-            boolean hayOtraLinea = entrada.hasNextLine();
-            if (entrada.ioException() != null) {
-                throw entrada.ioException();
-            }
-            String[] campos = linea.split("\\|", -1);
-            if (campos.length != 4 || hayOtraLinea) {
-                throw new IllegalArgumentException("Se esperaba una línea con cuatro campos.");
+        int[] lineas = {0};
+        ArchivoTexto.leer(archivo, 4, campos -> {
+            if (++lineas[0] > 1) {
+                throw new IllegalArgumentException("Se esperaba una sola línea.");
             }
             int dias = Integer.parseInt(campos[0]);
             int maximo = Integer.parseInt(campos[1]);
             BigDecimal tarifa = new BigDecimal(campos[2]);
-            boolean bloquear = leerBooleano(campos[3]);
             if (dias <= 0 || maximo <= 0 || tarifa.signum() < 0) {
                 throw new IllegalArgumentException("Días y máximo deben ser positivos; la tarifa debe ser mayor o igual a cero.");
             }
-            return new PoliticaPrestamo(dias, maximo, tarifa, bloquear);
-        } catch (IllegalArgumentException error) {
-            throw new IOException("politica.txt: " + error.getMessage(), error);
+            politica.actualizarReglas(dias, maximo, tarifa, ArchivoTexto.booleano(campos[3]));
+        });
+        if (lineas[0] == 0) {
+            throw new IOException("politica.txt: se esperaba una línea con cuatro campos.");
         }
     }
 
-    private void escribirUsuarios(Path archivo, List<Usuario> usuarios) throws IOException {
-        try (PrintWriter salida = new PrintWriter(new FileWriter(archivo.toFile(), StandardCharsets.UTF_8))) {
-            for (Usuario usuario : usuarios) {
+    private static void escribirUsuarios(Path archivo, Biblioteca biblioteca) throws IOException {
+        ArchivoTexto.escribir(archivo, salida -> {
+            for (Usuario usuario : biblioteca.getUsuarios()) {
                 String tipo;
                 String codigo;
                 if (usuario instanceof Lector lector) {
@@ -167,49 +183,24 @@ public class PersistenciaSIGEB {
                     tipo = "ADMINISTRADOR";
                     codigo = administrador.getCodigoAdministrador();
                 } else {
-                    throw new IOException("usuarios.txt: tipo de usuario sin formato de guardado.");
+                    throw new IllegalArgumentException("Tipo de usuario sin formato de guardado.");
                 }
-                salida.println(String.join("|", tipo, String.valueOf(usuario.getIdUsuario()),
-                        escapar(usuario.getDocumento()), escapar(usuario.getNombres()),
-                        escapar(usuario.getApellidos()), escapar(usuario.getCorreo()),
-                        String.valueOf(usuario.getActivo()), escapar(codigo)));
+                ArchivoTexto.fila(salida, tipo, usuario.getIdUsuario(), usuario.getDocumento(), usuario.getNombres(),
+                        usuario.getApellidos(), usuario.getCorreo(), usuario.getActivo(), codigo);
             }
-            salida.close();
-            if (salida.checkError()) {
-                throw new IOException("Error al escribir usuarios.txt.");
-            }
+        });
+    }
+
+    private static void escribirPolitica(Path archivo, PoliticaPrestamo politica) throws IOException {
+        ArchivoTexto.escribir(archivo, salida -> ArchivoTexto.fila(salida, politica.getDiasPrestamo(),
+                politica.getMaximoEjemplaresActivos(), politica.getPenalizacionPorDia(),
+                politica.getBloquearPorPenalizacion()));
+    }
+
+    private static class ErrorRecuperacion extends IOException {
+        ErrorRecuperacion(Path respaldo, IOException causa) {
+            super("El guardado se interrumpió y no se pudieron restaurar todos los archivos. "
+                    + "Copia anterior: " + respaldo, causa);
         }
-    }
-
-    private void escribirPolitica(Path archivo, PoliticaPrestamo politica) throws IOException {
-        try (PrintWriter salida = new PrintWriter(new FileWriter(archivo.toFile(), StandardCharsets.UTF_8))) {
-            salida.println(String.join("|", String.valueOf(politica.getDiasPrestamo()),
-                    String.valueOf(politica.getMaximoEjemplaresActivos()),
-                    politica.getPenalizacionPorDia().toString(),
-                    String.valueOf(politica.getBloquearPorPenalizacion())));
-            salida.close();
-            if (salida.checkError()) {
-                throw new IOException("Error al escribir politica.txt.");
-            }
-        }
-    }
-
-    private static boolean leerBooleano(String valor) {
-        if (!valor.equals("true") && !valor.equals("false")) {
-            throw new IllegalArgumentException("Valor booleano inválido.");
-        }
-        return Boolean.parseBoolean(valor);
-    }
-
-    private static String escapar(String texto) {
-        return texto.replace("%", "%25").replace("|", "%7C")
-                .replace("\r", "%0D").replace("\n", "%0A")
-                .replace("\u0085", "%85").replace("\u2028", "%2028").replace("\u2029", "%2029");
-    }
-
-    private static String desescapar(String texto) {
-        return texto.replace("%7C", "|").replace("%0D", "\r").replace("%0A", "\n")
-                .replace("%85", "\u0085").replace("%2028", "\u2028").replace("%2029", "\u2029")
-                .replace("%25", "%");
     }
 }
